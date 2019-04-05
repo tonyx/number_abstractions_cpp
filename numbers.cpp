@@ -66,8 +66,13 @@ Number* Integer::opposto() {
     return new Integer(-this->get_value());
 }
 
+
 Number* Rational::opposto() {
     return new Rational(-this->get_numeratore(),this->get_denominatore());
+}
+
+Number* Rational::reciproco() {
+    return new Rational(this->get_denominatore(),this->get_numeratore());
 }
 
 Number* Integer::somma_intero(Number* other) {
@@ -148,6 +153,7 @@ char* Integer::to_string() {
     sprintf(buffer,"%d",this->get_value());
     return buffer;
 }
+
 
 char* Rational::to_string() {
     sprintf(buffer, "%d/%d",this->get_numeratore(),this->get_denominatore());

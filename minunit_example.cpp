@@ -68,6 +68,12 @@ MU_TEST(sottrai_razionali) {
 	mu_check(strcmp("1/2",result->to_string())==0);
 }
 
+MU_TEST(reciproco_di_razionale) {
+	Rational* first = new Rational(2,1);
+	Number* reciprocal = first->reciproco();
+	mu_check(strcmp("1/2",reciprocal->to_string())==0);
+}
+
 
 
 
@@ -86,6 +92,7 @@ MU_TEST(implicit_sum_rationals) {
 	Number* result = (Number*)first->somma(second);
 	mu_check(strcmp("1/1",result->to_string())==0);
 }
+
 
 MU_TEST(dynamic_cast_test) {
 	Number* first = new Rational(1,2);
@@ -108,9 +115,8 @@ MU_TEST(stampa_istanza_razionale) {
 }
 
 MU_TEST(opposto_razional) {
-	Number* number = new Rational(1,2);
+	Rational* number = new Rational(1,2);
 	Number* opposite = number->opposto();
-	printf ("%s\n",opposite->to_string());
 	
 	mu_check(strcmp("-1/2",opposite->to_string())==0);
 }
@@ -217,6 +223,7 @@ MU_TEST_SUITE(test_suite) {
 	MU_RUN_TEST(sottrai_interi);
 	MU_RUN_TEST(sottrai_intero_razionale);
 	MU_RUN_TEST(sottrai_razionali);
+	MU_RUN_TEST(reciproco_di_razionale);
 
 }
 

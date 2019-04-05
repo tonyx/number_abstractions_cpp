@@ -1,5 +1,4 @@
 
-
 int char_to_int(char c);
 int string_to_int(char* myString);
 
@@ -11,7 +10,6 @@ class Number {
     virtual Number* opposto() = 0;
     virtual char* to_string() =0;
 };
-
 
 class Integer_operations {
     protected:
@@ -27,6 +25,8 @@ class Integer: public Number,Integer_operations {
     Number* sottrai(Number* other);
     Number* moltiplica(Number* other);
     Number* opposto();
+
+
     char* to_string();
     int get_value();
 
@@ -37,11 +37,16 @@ class Integer: public Number,Integer_operations {
     char buffer[97];
 };
 
+
 class Rational_operations {
+    public: 
+    virtual Number* reciproco() = 0;
+
     protected:
     virtual Number* somma_razionale(Number* other) = 0;
     virtual Number* moltiplica_razionale(Number* other) = 0;
 };
+
 
 class Rational: public Integer,Rational_operations {
     public: 
@@ -51,6 +56,8 @@ class Rational: public Integer,Rational_operations {
     Number* somma(Number * other);
     Number* moltiplica(Number * other);
     Number* opposto();
+    Number* reciproco();
+
     char* to_string();
 
     protected: 
