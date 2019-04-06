@@ -5,7 +5,6 @@
 #include "numbers.h"
 #include <math.h>
 
-
 int char_to_int(char c) {
 	return (int)c - 48;
 }
@@ -46,14 +45,6 @@ int Integer::get_value() {
 Number* Integer::somma(Number* other) {
     Integer* iOther = (Integer*)other;
     return iOther->somma_intero(this);
-
-    // Integer* iOther = dynamic_cast<Integer*> (other);
-    // if (iOther!=NULL) {
-    //     return iOther->somma_intero(this);
-    // } else {
-    //     return other->somma(this);
-    // }
-
 }
 
 Number* Rational::somma(Number* other) {
