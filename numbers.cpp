@@ -10,6 +10,7 @@ int char_to_int(char c) {
 	return (int)c - 48;
 }
 
+Integer* meno_uno = new Integer(-1);
 
 int string_to_int(char* my_string) {
 	int base=10;
@@ -21,7 +22,6 @@ int string_to_int(char* my_string) {
 	}
 	return to_return;
 }
-
 
 int gcd(int a,int b) {
     if (b==0) {
@@ -44,13 +44,16 @@ int Integer::get_value() {
 }
 
 Number* Integer::somma(Number* other) {
-    // Integer_operations* iOther = dynamic_cast<Integer*> (other);
-    Integer* iOther = dynamic_cast<Integer*> (other);
-    if (iOther!=NULL) {
-        return iOther->somma_intero(this);
-    } else {
-        return other->somma(this);
-    }
+    Integer* iOther = (Integer*)other;
+    return iOther->somma_intero(this);
+
+    // Integer* iOther = dynamic_cast<Integer*> (other);
+    // if (iOther!=NULL) {
+    //     return iOther->somma_intero(this);
+    // } else {
+    //     return other->somma(this);
+    // }
+
 }
 
 Number* Rational::somma(Number* other) {
@@ -64,6 +67,32 @@ Number* Rational::somma(Number* other) {
 
 Number* Integer::opposto() {
     return new Integer(-this->get_value());
+}
+
+Number* Integer::dividi_intero(Number* other) {
+    Integer* iOther = (Integer*)other;
+    return new Integer(this->get_value()/iOther->get_value());
+}
+
+
+Number* Rational::down_cast(Number* other) {
+    Integer* iOther = (Integer*) other;
+    return new Rational(iOther->get_value(),1);
+}
+
+Number* Rational::dividi(Number* other) {
+    Rational* rOther = dynamic_cast<Rational*>(other);
+    if (rOther!=NULL) {
+        return this->moltiplica(rOther->reciproco());
+    } else {
+        Rational* rOther = (Rational*)down_cast(other);
+        return this->moltiplica(rOther->reciproco());
+    }
+}
+
+
+Number* Integer::dividi(Number* other) {
+    return this->dividi_intero(other);
 }
 
 
@@ -109,6 +138,10 @@ Number* Integer::moltiplica_intero(Number* other) {
 }
 
 
+Rational::Rational() {
+
+}
+
 Rational::Rational(int numeratore,int denominatore) {
     int greatest_common_divisor = gcd(numeratore,denominatore);
     this->numeratore=numeratore/greatest_common_divisor;
@@ -128,7 +161,7 @@ int Rational::get_denominatore() {
 }
 
 Number* Rational::somma_intero(Number* other) {
-    Integer* iOther = dynamic_cast<Integer*>(other);
+    Integer* iOther = (Integer*)(other);
     Rational* rOther = new Rational(iOther->get_value(),1);
     return this->somma_razionale(rOther);
 }
@@ -160,12 +193,62 @@ char* Rational::to_string() {
     return buffer;
 }
 
-
-#define NOMAIN
-
-#ifndef NOMAIN 
-
-int main() {
-    printf("hello world");
+Complex::Complex(Number* real_part, Number* imaginary_part) {
+    this->real_part = real_part;
+    this->imaginary_part = imaginary_part;
 }
-#endif
+
+Number* Complex::get_real_part() {
+    return this->real_part;
+}
+
+Number* Complex::get_imaginary_part() {
+    return this->imaginary_part;
+}
+
+Number* Complex::somma(Number *other) {
+    Complex* cOther = dynamic_cast<Complex*>(other);
+    if (cOther !=NULL) {
+        return cOther->somma_complesso(this);
+    } else
+    {
+        return other->somma(this);
+    }
+}
+
+Number* Complex::somma_complesso(Number* other) {
+    Complex* cOther = (Complex*)other;
+    return new Complex(this->get_real_part()->somma(cOther->get_real_part()), 
+        this->get_imaginary_part()->somma(cOther->get_imaginary_part()));
+}
+
+Number* Complex::somma_razionale(Number* other) {
+    Rational* rOther = (Rational*)other;
+    Complex* downcastedOther = new Complex(rOther,new Integer(0));
+    return this->somma_complesso(downcastedOther);
+}
+
+
+Number* Complex::moltiplica(Number* other) {
+    Complex* cOther = dynamic_cast<Complex*>(other);
+    if (cOther != NULL) {
+        return cOther->moltiplica_complesso(this);
+    } else {
+        return other->moltiplica(this);
+    }
+}
+
+Number* Complex::moltiplica_complesso(Number* other) {
+    Complex* cOther = (Complex*)other;
+    Number* real_part = (this->get_real_part()->moltiplica(cOther->get_real_part())->somma(
+        (this->get_imaginary_part()->moltiplica(cOther->get_imaginary_part())->moltiplica(new Rational(-1,1)))));
+    Number* im_part = ((this->get_real_part()->moltiplica(cOther->get_imaginary_part()))->somma(
+        this->get_imaginary_part()->moltiplica(cOther->get_real_part())));
+    return new Complex(real_part,im_part);
+}
+
+char* Complex::to_string() {
+    sprintf(buffer,"%s+(%s)*i",get_real_part()->to_string(),get_imaginary_part()->to_string());
+    return buffer;
+}
+

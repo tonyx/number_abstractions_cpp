@@ -31,11 +31,10 @@ MU_TEST(sum_integer_and_rational) {
 	mu_check(strcmp("3/2",result->to_string())==0);
 }
 
-
 MU_TEST(sum_rational_and_integer) {
 	Number* first = new Rational(1,2);
 	Number* second = new Integer(1);
-	Number* result = (Number*)first->somma(second);
+	Number* result = first->somma(second);
 	mu_check(strcmp("3/2",result->to_string())==0);
 }
 
@@ -44,7 +43,6 @@ MU_TEST(moltiplica_razionali) {
 	Number* second = new Rational(1,2);
 	Number* result = first->moltiplica(second);
 	mu_check(strcmp("1/4",result->to_string())==0);
-
 }
 
 MU_TEST(sottrai_interi) {
@@ -61,6 +59,14 @@ MU_TEST(sottrai_intero_razionale) {
 	mu_check(strcmp("1/2",result->to_string())==0);
 }
 
+MU_TEST(somma_intero_razionale) {
+	Number* first = new Integer(1);
+	Number* second = new Rational(1,2);
+	Number* result = first->somma(second);
+	mu_check(strcmp("3/2",result->to_string())==0);
+}
+
+
 MU_TEST(sottrai_razionali) {
 	Number* first = new Rational(1,1);
 	Number* second = new Rational(1,2);
@@ -74,16 +80,26 @@ MU_TEST(reciproco_di_razionale) {
 	mu_check(strcmp("1/2",reciprocal->to_string())==0);
 }
 
+MU_TEST(divide_integer_by_another_integer_gives_an_integer) {
+	Number* first = new Integer(2);
+	Number* second = new Integer(3);
+	Number* result = first->dividi(second);
+	mu_check(strcmp("1",result->to_string())==0);
+}
 
+MU_TEST(divide_rationals) {
+	Number* first = new Rational(2,1);
+	Number* second = new Rational(2,1);
+	Number* result = first->dividi(second);
+	mu_check(strcmp("1/1",result->to_string())==0);
+}
 
-
-// MU_TEST(explicit_sum_rationals) {
-// 	Rational* first = new Rational(1,2);
-// 	Rational* second = new Rational(1,2);
-// 	Rational* result = (Rational*)first->somma_razionale(second);
-// 	mu_check(result->get_numeratore()==1);
-// 	mu_check(result->get_denominatore()==1);
-// }
+MU_TEST(divide_rationals_2) {
+	Number* first = new Rational(1,1);
+	Number* second = new Rational(3,1);
+	Number* result = first->dividi(second);
+	mu_check(strcmp("1/3",result->to_string())==0);
+}
 
 
 MU_TEST(implicit_sum_rationals) {
@@ -106,7 +122,7 @@ MU_TEST(moltiplica_interi) {
 	Number* first = new Integer(2);
 	Number* second =  new Integer(2);
 	Integer* prodotto = (Integer*)first->moltiplica(second);
-	mu_check(4==prodotto->get_value());
+	mu_check(strcmp("4",prodotto->to_string())==0);
 }
 
 MU_TEST(stampa_istanza_razionale) {
@@ -117,9 +133,97 @@ MU_TEST(stampa_istanza_razionale) {
 MU_TEST(opposto_razional) {
 	Rational* number = new Rational(1,2);
 	Number* opposite = number->opposto();
-	
 	mu_check(strcmp("-1/2",opposite->to_string())==0);
 }
+
+MU_TEST(dividi_razionale_intero) {
+	Number* number = new Rational(2,1);
+	Number* second = new Integer(2);
+	Number* result = number->dividi(second);
+
+	mu_check(strcmp("1/1",result->to_string())==0);
+}
+
+MU_TEST(istanzia_complesso) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	mu_check(strcmp("1/1+(1/1)*i",number->to_string())==0);
+}
+
+MU_TEST(somma_complessi) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* number2 = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* result  = number->somma(number2);
+
+	mu_check(strcmp("2/1+(2/1)*i",result->to_string())==0);
+}
+
+
+MU_TEST(somma_complesso_razionale) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* number2 = new Rational(1,1);
+	Number* result  = number->somma(number2);
+
+	mu_check(strcmp("2/1+(1/1)*i",result->to_string())==0);
+}
+
+MU_TEST(somma_razionale_complesso) {
+
+	Number* number = new Rational(1,1);
+	Number* number2 = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* result  = number->somma(number2);
+
+	mu_check(strcmp("2/1+(1/1)*i",result->to_string())==0);
+}
+
+MU_TEST(somma_complesso_intero) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* number2 = new Integer(1);
+	Number* result  = number->somma(number2);
+	// printf ("%s\n",result->to_string());
+
+	mu_check(strcmp("2/1+(1/1)*i",result->to_string())==0);
+}
+
+MU_TEST(somma_intero_complesso) {
+
+	Number* number = new Integer(1);
+	Number* number2 = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* result  = number->somma(number2);
+	// printf ("%s\n",result->to_string());
+
+	mu_check(strcmp("2/1+(1/1)*i",result->to_string())==0);
+}
+
+MU_TEST(prodotto_complessi) {
+	Number* number = new Complex(new Rational(1,1),new Rational(0,1));
+	Number* second = new Complex(new Rational(1,1),new Rational(0,1));
+	Number* result = number->moltiplica(second);
+	mu_check(strcmp("1/1+(0/1)*i",result->to_string())==0);
+}
+
+// ignored
+MU_TEST(prodotto_complessi_2) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* second = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* result = number->moltiplica(second);
+	mu_check(strcmp("0/1+(2/1)*i",result->to_string())==0);
+}
+
+MU_TEST(prodotto_complessi_3) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* second = new Complex(new Rational(1,1),new Rational(0,1));
+	Number* result = number->moltiplica(second);
+	mu_check(strcmp("1/1+(1/1)*i",result->to_string())==0);
+}
+
+MU_TEST(prodotto_complessi_4) {
+	Number* number = new Complex(new Rational(1,1),new Rational(1,1));
+	Number* second = new Complex(new Rational(1,1),new Rational(0,1));
+	Number* result = number->moltiplica(second);
+	mu_check(strcmp("1/1+(1/1)*i",result->to_string())==0);
+}
+
+
 
 MU_TEST(string_to_intger) {
 	char* no_val = (char*)"";
@@ -142,6 +246,7 @@ MU_TEST(to_int_test) {
 	int actual = string_to_int(unoduetre);
 	mu_check(converted==1);
 }
+
 
 
 MU_TEST(test_check) {
@@ -224,6 +329,20 @@ MU_TEST_SUITE(test_suite) {
 	MU_RUN_TEST(sottrai_intero_razionale);
 	MU_RUN_TEST(sottrai_razionali);
 	MU_RUN_TEST(reciproco_di_razionale);
+	MU_RUN_TEST(divide_rationals);
+	MU_RUN_TEST(divide_rationals_2);
+	MU_RUN_TEST(dividi_razionale_intero);
+	MU_RUN_TEST(somma_intero_razionale);
+	MU_RUN_TEST(istanzia_complesso);
+	MU_RUN_TEST(somma_complessi);
+	MU_RUN_TEST(somma_complesso_razionale);
+	MU_RUN_TEST(somma_complesso_intero);
+	MU_RUN_TEST(somma_intero_complesso);
+	MU_RUN_TEST(somma_razionale_complesso);
+	MU_RUN_TEST(prodotto_complessi);
+	MU_RUN_TEST(prodotto_complessi_2);
+	MU_RUN_TEST(prodotto_complessi_3);
+	MU_RUN_TEST(prodotto_complessi_4);
 
 }
 
