@@ -4,30 +4,51 @@
 #include <string.h>
 #include "numbers.h"
 #include <math.h>
+#include <stdexcept>
+using namespace std;
 
 int char_to_int(char c) {
 	return (int)c - 48;
 }
 
 Integer* meno_uno = new Integer(-1);
+Rational* meno_uno_razionale = new Rational(-1,1);
+
+Number* string_to_number(char* my_string) {
+    char buffer[97];
+    char* slash_in_string = strchr(my_string,'/');
+    if (slash_in_string==NULL) {
+        return new Integer(string_to_int(my_string));
+    } else {
+        int position_of_slash = slash_in_string - my_string;
+        strncpy(buffer,my_string,position_of_slash);
+        buffer[position_of_slash]='\0';
+        int numerator = string_to_int(buffer);
+        int denominator = string_to_int(my_string+position_of_slash+1);
+        return new Rational(numerator,denominator);
+    }
+}
 
 int string_to_int(char* my_string) {
 	int base=10;
 	int to_return = 0;
 	int string_len = strlen(my_string);
 
-	for(int index=string_len;index>0;index--) {
-		to_return+=(char_to_int(*(my_string+(index-1))))*(pow(base,(index-1)));
+	for(int index=0;index<string_len;index++) {
+		to_return+=(char_to_int(*(my_string+(index))))*(pow(base,(string_len-index-1)));
 	}
+
 	return to_return;
 }
+
+
 
 int gcd(int a,int b) {
     if (b==0) {
         return a;
     }  else
     {
-        return gcd(b,a%b);
+       return gcd(b,a%b);
     }
 }
 
@@ -61,6 +82,9 @@ Number* Integer::opposto() {
 }
 
 Number* Integer::dividi_intero(Number* other) {
+    if (typeid(other) != typeid(Integer)) {
+        throw std::runtime_error("parametro diverso da intero non ammesso");
+    }
     Integer* iOther = (Integer*)other;
     return new Integer(this->get_value()/iOther->get_value());
 }
@@ -133,6 +157,13 @@ Rational::Rational() {
 
 }
 
+Number* Rational::dividi_intero(Number* other) {
+    Integer* iOther = (Integer*)other;
+    Rational* rOther = new Rational(1,iOther->get_value());
+    return this->moltiplica_razionale(iOther);
+}
+
+
 Rational::Rational(int numeratore,int denominatore) {
     int greatest_common_divisor = gcd(numeratore,denominatore);
     this->numeratore=numeratore/greatest_common_divisor;
@@ -156,6 +187,12 @@ Number* Rational::somma_intero(Number* other) {
     Rational* rOther = new Rational(iOther->get_value(),1);
     return this->somma_razionale(rOther);
 }
+Number* Rational::moltiplica_intero(Number* other) {
+    Integer* iOther = (Integer*)(other);
+    Rational* rOther = new Rational(iOther->get_value(),1);
+    return this->moltiplica_razionale(rOther);
+}
+
 
 Number* Rational::somma_razionale(Number* other) {
     Rational* rOther = dynamic_cast<Rational*>(other);
@@ -163,6 +200,11 @@ Number* Rational::somma_razionale(Number* other) {
     int new_denominator = this->get_denominatore()*rOther->get_denominatore();
     Rational* to_return = new Rational(new_numerator,new_denominator);
     return to_return;
+}
+
+Number* Rational::dividi_razionale(Number* other) {
+    Rational* rOther = (Rational*)rOther;
+    return this->moltiplica_razionale(rOther->reciproco());
 }
 
 Number* Rational::moltiplica_razionale(Number* other) {
@@ -232,7 +274,7 @@ Number* Complex::moltiplica(Number* other) {
 Number* Complex::moltiplica_complesso(Number* other) {
     Complex* cOther = (Complex*)other;
     Number* real_part = (this->get_real_part()->moltiplica(cOther->get_real_part())->somma(
-        (this->get_imaginary_part()->moltiplica(cOther->get_imaginary_part())->moltiplica(new Rational(-1,1)))));
+        (this->get_imaginary_part()->moltiplica(cOther->get_imaginary_part())->moltiplica(meno_uno))));
     Number* im_part = ((this->get_real_part()->moltiplica(cOther->get_imaginary_part()))->somma(
         this->get_imaginary_part()->moltiplica(cOther->get_real_part())));
     return new Complex(real_part,im_part);

@@ -1,7 +1,6 @@
-
+int gcd(int a,int b);
 int char_to_int(char c);
 int string_to_int(char* myString);
-
 class Number {
     public: 
     virtual Number* somma(Number* other) = 0;
@@ -11,6 +10,8 @@ class Number {
     virtual Number* dividi(Number* other) = 0;
     virtual char* to_string() = 0;
 };
+
+Number* string_to_number(char* my_string);
 
 class Integer_operations {
     private:
@@ -52,6 +53,7 @@ class Rational_operations {
     private:
     virtual Number* somma_razionale(Number* other) = 0;
     virtual Number* moltiplica_razionale(Number* other) = 0;
+    virtual Number* dividi_razionale(Number* other) = 0;
 };
 
 class Rational: public Integer,Rational_operations {
@@ -73,6 +75,9 @@ class Rational: public Integer,Rational_operations {
     private: 
     Number* somma_razionale(Number* other);
     Number* moltiplica_razionale(Number *other);
+    Number* moltiplica_intero(Number *other);
+    Number* dividi_razionale(Number *other);
+    Number* dividi_intero(Number *other);
     int get_numeratore();
     int get_denominatore();
     int numeratore;
