@@ -1,6 +1,21 @@
+#include <list>
+#include <string>
+// using namespace std;
+
 int gcd(int a,int b);
 int char_to_int(char c);
 int string_to_int(char* myString);
+void trim_left_and_right(char* my_char);
+
+class StringExpressionToList {
+    public:
+    StringExpressionToList(char* expression);
+    std::list<std::string> get_listed_expression();
+    
+    private:
+    std::list<std::string> messages;
+};
+
 class Number {
     public: 
     virtual Number* somma(Number* other) = 0;
@@ -12,6 +27,36 @@ class Number {
 };
 
 Number* string_to_number(char* my_string);
+Number* parse_expression(char* expression);
+
+
+class Syntax_tree {
+    public:
+    virtual Number* eval() = 0;
+};
+
+Syntax_tree* expression_to_syntax_tree(char* expression);
+char* chunk_delimiter(char* my_string);
+
+class Number_node_tree: public Syntax_tree {
+    public: 
+    Number_node_tree(Number*);
+    Number* eval();
+    private: 
+    Number* number;
+};
+
+class Expression_node_tree: public Syntax_tree {
+    public:
+    Expression_node_tree(Syntax_tree* left_expression, char operation, Syntax_tree* right_expression);
+    Number* eval();
+    private: 
+    char operation;
+    Syntax_tree* left_expression;
+    Syntax_tree* right_expression;
+};
+
+Syntax_tree* expression_to_syntax_tree_iter(char* expression,Syntax_tree** tree, char my_operator );
 
 class Integer_operations {
     private:
@@ -24,7 +69,6 @@ class Integer: public Number,Integer_operations {
     friend class Rational;
 
     public:
-    Integer();
     Integer(int number);
     Number* somma(Number* other);
     Number* sottrai(Number* other);
@@ -38,6 +82,7 @@ class Integer: public Number,Integer_operations {
     char buffer[97];
 
     private:
+    Integer();
     int get_value();
     int the_value;
     Number* somma_intero(Number* other);

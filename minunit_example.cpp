@@ -1,8 +1,9 @@
 #include "minunit.h"
 #include "numbers.h"
 #include <stdlib.h>
-#include <string.h>
 #include <stdexcept>
+#include <list>
+// using namespace std;
 
 static int foo = 0;
 static int bar = 0;
@@ -17,6 +18,37 @@ void test_setup(void) {
 void test_teardown(void) {
 	/* Nothing */
 }
+
+int int_comparator(const void* a, const void* b ) {
+	return *(int*)a - *(int*)b;
+}
+
+
+MU_TEST(chunk_delimiter_test) {
+	char buffer[97];
+	strcpy(buffer,"ciao+ok");
+	char* end_of_current_string = chunk_delimiter(buffer);
+	mu_check(end_of_current_string==&buffer[4]);
+}
+
+MU_TEST(int_comparer_test) {
+	int my_int_array[2] = {1,2};
+	int your_int_array[2] = {2,1};
+	int his_int_array[6] = {4,1,2,6,99,8};
+	qsort(my_int_array,2,sizeof(int),&int_comparator);
+	mu_check(my_int_array[0]==1);
+
+	qsort(your_int_array,2,sizeof(int),&int_comparator);
+	mu_check(your_int_array[0]==1);
+
+	qsort(his_int_array,6,sizeof(int),&int_comparator);
+	mu_check(his_int_array[0]==1);
+	mu_check(his_int_array[1]==2);
+	mu_check(his_int_array[2]==4);
+	mu_check(his_int_array[5]==99);
+
+}
+
 
 MU_TEST(sum_integers) {
 	Number* first = new Integer(1);
@@ -320,10 +352,215 @@ MU_TEST(costruzione_di_numero_razionale_2_test_2) {
 	mu_check(strcmp("31/1",number->to_string())==0);
 }
 
+MU_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi) {
+	char buffer[97];
+	strcpy(buffer," 341/11  ");
+	Number* number = string_to_number(buffer);
+	Rational* rational = new Rational(341,11);
+	mu_check(strcmp("31/1",number->to_string())==0);
+}
+
+MU_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi_prima) {
+	char buffer[97];
+	strcpy(buffer," 341/11");
+	Number* number = string_to_number(buffer);
+	Rational* rational = new Rational(341,11);
+	mu_check(strcmp("31/1",number->to_string())==0);
+}
+
+MU_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi_dopo) {
+	char buffer[97];
+	strcpy(buffer,"341/11 ");
+	Number* number = string_to_number(buffer);
+	Rational* rational = new Rational(341,11);
+	mu_check(strcmp("31/1",number->to_string())==0);
+}
+
 MU_TEST(costruzione_numero_da_stringa_0) {
 	Integer* zero = new Integer(0);
 	mu_check(strcmp("0",zero->to_string())==0);
 }
+
+MU_TEST(costruzione_numero_da_stringa_nulla) {
+	Number* actual= string_to_number((char*)"");
+	mu_check(strcmp("0",actual->to_string())==0);
+}
+
+
+MU_TEST(parse_expression_null_string) {
+	Number* actual= parse_expression((char*)"");
+	mu_check(strcmp("0",actual->to_string())==0);
+}
+
+MU_TEST(parse_plain_integer_string_expression) {
+	Number* actual= parse_expression((char*)"1");
+	mu_check(strcmp("1",actual->to_string())==0);
+}
+
+MU_TEST(parse_plain_rational_string_expression) {
+	Number* actual= parse_expression((char*)"1/2");
+	mu_check(strcmp("1/2",actual->to_string())==0);
+}
+
+MU_TEST(parse_expression_by_with_spaces) {
+	Number* actual= parse_expression((char*)" 1/2 ");
+	printf ("%s\n",actual->to_string());
+	mu_check(strcmp("1/2",actual->to_string())==0);
+}
+
+
+MU_TEST(parse_sum_expression_between_integer) {
+	Number* actual= parse_expression((char*)"1+1");
+	mu_check(strcmp("2",actual->to_string())==0);
+}
+
+MU_TEST(syntax_tree_composed_by_single_integer) {
+	Syntax_tree* node = new Number_node_tree(new Integer(1));
+	mu_check(strcmp("1",node->eval()->to_string())==0);
+}
+
+MU_TEST(syntax_tree_sum_composed_by_binary_expression) {
+	Syntax_tree* node = new Expression_node_tree(new Number_node_tree(new Integer(1)),'+',new Number_node_tree(new Integer(1)));
+	mu_check(strcmp("2",node->eval()->to_string())==0);
+}
+
+MU_TEST(syntax_tree_product_composed_by_binary_expression) {
+	Syntax_tree* node = new Expression_node_tree(new Number_node_tree(new Integer(1)),'*',new Number_node_tree(new Integer(1)));
+	mu_check(strcmp("1",node->eval()->to_string())==0);
+}
+
+MU_TEST(syntax_tree_product_composed_by_binary_expression_2) {
+	Syntax_tree* node = new Expression_node_tree(new Number_node_tree(new Integer(2)),'*',new Number_node_tree(new Integer(2)));
+	mu_check(strcmp("4",node->eval()->to_string())==0);
+}
+
+MU_TEST(build_node_by_string_expression_of_single_integer_number) {
+	Syntax_tree* actual_syntax_tree	= expression_to_syntax_tree((char*)"");
+	mu_check(strcmp("0",actual_syntax_tree->eval()->to_string())==0);
+}
+
+MU_TEST(build_node_by_string_expression_of_single_integer_number_zero) {
+	Syntax_tree* actual_syntax_tree	= expression_to_syntax_tree((char*)"0");
+	mu_check(strcmp("0",actual_syntax_tree->eval()->to_string())==0);
+}
+
+MU_TEST(build_node_by_string_expression_of_sum_of_integers) {
+	Syntax_tree* actual_syntax_tree	= expression_to_syntax_tree((char*)"1+1");
+	mu_check(strcmp("1",actual_syntax_tree->eval()->to_string())==0);
+}
+
+
+MU_TEST(split_mesages_to_string_list_empty_string_is_empty_list) {
+	StringExpressionToList* expression_manager = new StringExpressionToList((char*)"");
+	std::list<std::string> converted_to_list = expression_manager->get_listed_expression();
+	mu_check(converted_to_list.size() == 0);
+}
+
+MU_TEST(split_mesages_to_string_list_for_list_of_one_element) {
+	StringExpressionToList* expression_manager = new StringExpressionToList((char*)"1");
+	std::list<std::string> converted_to_list = expression_manager->get_listed_expression();
+	mu_check(converted_to_list.size() == 1);
+}
+
+MU_TEST(expression_manager_test) {
+	char buffer[97];
+	strcpy(buffer,"1+1");
+	StringExpressionToList* stringExpressionManager = new StringExpressionToList(buffer);
+	mu_check(3==stringExpressionManager->get_listed_expression().size());
+}
+
+MU_TEST(expression_manager_test2) {
+	char buffer[97];
+	strcpy(buffer,"11+1");
+
+	StringExpressionToList* stringExpressionManager = new StringExpressionToList(buffer);
+	printf("size: %d",(int)stringExpressionManager->get_listed_expression().size());
+
+	std::list<std::string> msg = stringExpressionManager->get_listed_expression();
+
+	int n = msg.size();
+	printf ("mysize: %d\n",n);
+
+	mu_check(4==(int)msg.size());
+	
+	int i=0;
+	for (auto it = msg.begin();i<n;it++,i++) {
+		printf("eccolo: %s\n",(*it).c_str());
+	}
+
+	// mu_check(3==msg.sizestringExpressionManager->get_listed_expression().size());
+
+    // int i=0;
+    // for (auto it = previous_messages.begin();i<n;it++,i++) {
+    //     update((char*)(*it).c_str());
+    // }
+    // previous_messages.clear();
+
+}
+
+MU_TEST(expression_to_tree_empty_expession_is_zero) {
+	char expression[97];
+	strcpy(expression,"");
+	Syntax_tree* from_expression = expression_to_syntax_tree(expression);
+	mu_check(strcmp("0",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(expression_to_tree_for_zero_number_is_zeroe) {
+	char expression[97];
+	strcpy(expression,"0");
+	Syntax_tree* from_expression = expression_to_syntax_tree(expression);
+	mu_check(strcmp("0",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(expression_to_tree_for_number_one_is_one) {
+	char expression[97];
+	strcpy(expression,"1");
+	Syntax_tree* from_expression = expression_to_syntax_tree(expression);
+	mu_check(strcmp("1",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(expression_to_tree_for_any_rational_is_the_rational) {
+	char expression[97];
+	strcpy(expression,"1/1");
+	Syntax_tree* from_expression = expression_to_syntax_tree(expression);
+	mu_check(strcmp("1/1",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(expression_to_tree_for_sum_expression) {
+	char expression[97];
+	strcpy(expression,"1+1");
+	Syntax_tree* from_expression = expression_to_syntax_tree(expression);
+	mu_check(strcmp("2",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(empty_expression_leads_to_zero_tree) {
+	Syntax_tree* iter_tree = NULL;
+	char expression[97];
+	strcpy(expression,"");
+	Syntax_tree* from_expression = expression_to_syntax_tree_iter(expression,&iter_tree,'\0');
+	mu_check(strcmp("0",from_expression->eval()->to_string())==0);
+}
+
+MU_TEST(zero_expression_leads_to_zero_tree) {
+	Syntax_tree* iter_tree = NULL;
+	char expression[97];
+	strcpy(expression,"0");
+	Syntax_tree* from_expression = expression_to_syntax_tree_iter(expression,&iter_tree,'\0');
+	mu_check(strcmp("0",from_expression->eval()->to_string())==0);
+}
+
+
+
+MU_TEST(test_trim_before) {
+	char to_trim[10];
+
+	strcpy(to_trim,"    trim" );
+	trim_left_and_right(to_trim);
+
+	mu_check(strcmp(to_trim,"trim")==0);
+
+}
+
 
 MU_TEST(string_to_intger) {
 	char* no_val = (char*)"";
@@ -403,17 +640,14 @@ MU_TEST_SUITE(test_suite) {
 	// MU_RUN_TEST(test_assert_fail);
 	// MU_RUN_TEST(test_assert_int_eq_fail);
 	// MU_RUN_TEST(test_assert_double_eq_fail);
-	
 	// MU_RUN_TEST(test_string_eq);
 	// MU_RUN_TEST(test_string_eq_fail);
-
 	// MU_RUN_TEST(test_fail);
 
 
 	MU_RUN_TEST(sum_integers);
 	MU_RUN_TEST(sum_integer_and_rational);
 	MU_RUN_TEST(sum_rational_and_integer);
-	// MU_RUN_TEST(explicit_sum_rationals);
 
 	MU_RUN_TEST(implicit_sum_rationals);
 	MU_RUN_TEST(moltiplica_interi);
@@ -454,7 +688,42 @@ MU_TEST_SUITE(test_suite) {
 	MU_RUN_TEST(costruzione_di_numero_razionale_2);
 	MU_RUN_TEST(costruzione_di_numero_razionale_2_test_2);
 	MU_RUN_TEST(string_to_int_test_2);
+	MU_RUN_TEST(costruzione_numero_da_stringa_nulla);
+	MU_RUN_TEST(parse_expression_null_string);
+	MU_RUN_TEST(parse_plain_integer_string_expression);
+	MU_RUN_TEST(parse_plain_rational_string_expression);
 
+
+	// MU_RUN_TEST(parse_expression_by_with_spaces);
+	// MU_RUN_TEST(parse_sum_expression_between_integer);
+
+	MU_RUN_TEST(syntax_tree_composed_by_single_integer);
+	MU_RUN_TEST(syntax_tree_sum_composed_by_binary_expression);
+
+	MU_RUN_TEST(syntax_tree_product_composed_by_binary_expression);
+	MU_RUN_TEST(syntax_tree_product_composed_by_binary_expression_2);
+	MU_RUN_TEST(build_node_by_string_expression_of_single_integer_number);
+	MU_RUN_TEST(build_node_by_string_expression_of_single_integer_number_zero);
+
+	 MU_RUN_TEST(split_mesages_to_string_list_empty_string_is_empty_list);
+
+	 MU_RUN_TEST(test_trim_before);
+	 MU_RUN_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi);
+	 MU_RUN_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi_prima);
+	 MU_RUN_TEST(costruzione_di_numero_razionale_2_test_2_con_spazi_dopo);
+	 MU_RUN_TEST(expression_to_tree_empty_expession_is_zero);
+	 MU_RUN_TEST(expression_to_tree_for_zero_number_is_zeroe);
+	 MU_RUN_TEST(expression_to_tree_for_number_one_is_one);
+	 MU_RUN_TEST(expression_to_tree_for_any_rational_is_the_rational);
+	//  MU_RUN_TEST(expression_to_tree_for_sum_expression);
+	 MU_RUN_TEST(empty_expression_leads_to_zero_tree);
+	 MU_RUN_TEST(zero_expression_leads_to_zero_tree);
+
+	//  MU_RUN_TEST(expression_manager_test);
+	//  MU_RUN_TEST(expression_manager_test2);
+
+	 MU_RUN_TEST(int_comparer_test);
+	 MU_RUN_TEST(chunk_delimiter_test);
 }
 
 int main(int argc, char *argv[]) {

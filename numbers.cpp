@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <typeinfo>
 #include <string.h>
+
 #include "numbers.h"
 #include <math.h>
 #include <stdexcept>
@@ -14,7 +15,107 @@ int char_to_int(char c) {
 Integer* meno_uno = new Integer(-1);
 Rational* meno_uno_razionale = new Rational(-1,1);
 
+Number* parse_expression(char* my_string) {
+    return string_to_number(my_string);
+}
+
+Syntax_tree* expression_to_syntax_tree(char* my_string) {
+    Syntax_tree* to_return;
+    to_return = new Number_node_tree(string_to_number(my_string));
+    return to_return;
+}
+
+int pointer_comparator(const void* a, const void* b) {
+    return (char*)b - (char*)a;
+}
+
+
+char* chunk_delimiter(char* my_string) {
+    char* endings[3];
+    char* end_of_string = strchr(my_string,'\0');
+    char* plus_operator_location  = (strchr(my_string,'+')!=NULL?strchr(my_string,'+'):NULL);
+    char* times_operator_location = (strchr(my_string,'*')!=NULL?strchr(my_string,'*'):NULL);
+    endings[0]=end_of_string;
+    endings[1]=plus_operator_location;
+    endings[2]=times_operator_location;
+
+    qsort(endings,3,sizeof(char*),&pointer_comparator);
+    int index=0;
+    char* to_return=endings[index];
+    while (to_return==NULL&&index++<3)  {
+        to_return=endings[index];
+    }
+    return to_return;
+}
+
+Syntax_tree* expression_to_syntax_tree_iter(char* my_string,Syntax_tree** accumul,char my_operator) {
+    char buffer[97];
+    trim_left_and_right(my_string);
+    if (strcmp("",my_string)==0) {
+        return new Number_node_tree(new Integer(0));
+    }
+    char* end_of_current_chunk = chunk_delimiter(my_string);
+    strncpy(buffer,my_string,end_of_current_chunk-my_string );
+    buffer[end_of_current_chunk-my_string]='\0';
+    Syntax_tree* to_return = new Number_node_tree(string_to_number(buffer));
+    return to_return;
+}
+
+StringExpressionToList::StringExpressionToList(char* expression) {
+    trim_left_and_right(expression);
+    if (strcmp("",expression)==0) {
+        return;
+    }
+    
+    char buffer[29];
+    this->messages = std::list<std::string>();
+
+    char* begin_of_current_chunk = expression;
+    char* end_of_current_chunk = expression;
+
+    while(true) {
+        while(*end_of_current_chunk++!='\0'&&*end_of_current_chunk!='+');
+        strncpy(buffer,begin_of_current_chunk,end_of_current_chunk-begin_of_current_chunk);
+
+        this->messages.push_back(buffer);
+
+        if (*end_of_current_chunk=='\0') {
+            break;
+        } else {
+            this->messages.push_back("+");
+        }
+        end_of_current_chunk++;
+        begin_of_current_chunk=end_of_current_chunk;
+    }
+}
+
+std::list<std::string> StringExpressionToList::get_listed_expression() {
+    return this->messages;
+}
+
+void trim_left_and_right(char* my_char) {
+    if (strchr(my_char,' ')==NULL) {
+        return;
+    }
+
+    char buffer[37];
+    char* chr_pointer = my_char;
+    while(*chr_pointer==' ') {
+        chr_pointer++;
+    }
+
+    strcpy(buffer,chr_pointer);
+
+    char* first_right_space = strchr(buffer,' ');
+    if (first_right_space!=NULL) {
+        *first_right_space='\0';
+    }
+
+    strcpy(my_char,buffer);
+}
+
 Number* string_to_number(char* my_string) {
+    trim_left_and_right(my_string);
     char buffer[97];
     char* slash_in_string = strchr(my_string,'/');
     if (slash_in_string==NULL) {
@@ -37,11 +138,8 @@ int string_to_int(char* my_string) {
 	for(int index=0;index<string_len;index++) {
 		to_return+=(char_to_int(*(my_string+(index))))*(pow(base,(string_len-index-1)));
 	}
-
 	return to_return;
 }
-
-
 
 int gcd(int a,int b) {
     if (b==0) {
@@ -66,6 +164,35 @@ int Integer::get_value() {
 Number* Integer::somma(Number* other) {
     Integer* iOther = (Integer*)other;
     return iOther->somma_intero(this);
+}
+
+Number* Number_node_tree::eval() {
+    return this->number;
+};
+
+Number_node_tree::Number_node_tree(Number* number) {
+    this->number = number;
+}
+
+Expression_node_tree::Expression_node_tree(Syntax_tree* left_expression, char operation, Syntax_tree* right_expression) {
+    this->operation = operation;
+    this->left_expression = left_expression;
+    this->right_expression= right_expression;
+}
+
+Number* Expression_node_tree::eval() {
+    switch (this->operation) {
+        case '+':
+            return this->left_expression->eval()->somma(this->right_expression->eval());
+        case '*':
+            return this->left_expression->eval()->moltiplica(this->right_expression->eval());
+    }
+
+    char buffer[92];
+    strcpy(buffer,"operazione 'X' non implementata");
+    char* pointer_to_X = strchr(buffer,'X');
+    *pointer_to_X = this->operation;
+    throw new std::runtime_error(buffer);
 }
 
 Number* Rational::somma(Number* other) {
@@ -104,7 +231,6 @@ Number* Rational::dividi(Number* other) {
         return this->moltiplica(rOther->reciproco());
     }
 }
-
 
 Number* Integer::dividi(Number* other) {
     return this->dividi_intero(other);
